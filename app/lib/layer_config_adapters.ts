@@ -4,7 +4,7 @@ import type { LayerSpecification, StyleSpecification } from "maplibre-gl";
 import { toast } from "react-hot-toast";
 import type { ILayerConfig } from "types";
 
-const warnOffline = once(() => {
+const _warnOffline = once(() => {
   toast.error("Offline: falling back to blank background");
 });
 

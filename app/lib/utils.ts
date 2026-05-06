@@ -6,7 +6,6 @@ import type { Either } from "purify-ts/Either";
 import { EitherAsync } from "purify-ts/EitherAsync";
 import { Just, type Maybe, Nothing } from "purify-ts/Maybe";
 import type { Promisable } from "type-fest";
-import type { ILayerConfig } from "types";
 import type { ZodSafeParseResult, z } from "zod";
 
 /**

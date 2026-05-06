@@ -31,9 +31,7 @@ import type PMap from "../pmap";
 
 type PutFeature = MomentInput["putFeatures"][0];
 
-export function getMapCoord(
-  e: MapMouseEvent | MapTouchEvent,
-) {
+export function getMapCoord(e: MapMouseEvent | MapTouchEvent) {
   return e6position(e.lngLat.toArray(), 7) as Pos2;
 }
 

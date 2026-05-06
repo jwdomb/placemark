@@ -38,7 +38,6 @@ import { useZoomTo } from "app/hooks/use_zoom_to";
 import LAYERS from "app/lib/default_layers";
 import { newFeatureId } from "app/lib/id";
 import { usePersistence } from "app/lib/persistence/context";
-import type { Moment } from "app/lib/persistence/moment";
 import { get, getTileJSON } from "app/lib/utils";
 import { zTileJSON } from "app/mapbox-layers/validations";
 import { generateKeyBetween } from "fractional-indexing";
@@ -52,14 +51,10 @@ import toast from "react-hot-toast";
 import { layerConfigAtom } from "state/jotai";
 import { match } from "ts-pattern";
 import { type ILayerConfig, zLayerConfig } from "types";
-import { ZodError, z } from "zod";
+import { ZodError, type z } from "zod";
 import { DefaultLayerItem } from "./default_layer_item";
 
-type Mode =
-  | "initial"
-  | "custom"
-  | "custom-xyz"
-  | "custom-tilejson";
+type Mode = "initial" | "custom" | "custom-xyz" | "custom-tilejson";
 
 const layerModeAtom = atom<Mode>("initial");
 

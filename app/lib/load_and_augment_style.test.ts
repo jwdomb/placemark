@@ -1,9 +1,9 @@
 import { validateStyleMin as validate } from "@maplibre/maplibre-gl-style-spec";
 import { purple900 } from "app/lib/constants";
 import { exportStyle } from "app/lib/export_style";
+import type { StyleSpecification } from "maplibre-gl";
 import { NIL_PREVIEW } from "test/helpers";
 import type { ILayerConfig, ISymbolization } from "types";
-import type { StyleSpecification } from "maplibre-gl";
 import { describe, expect, it, test, vi } from "vitest";
 import loadAndAugmentStyle, {
   addEditingLayers,

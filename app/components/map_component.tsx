@@ -1,6 +1,5 @@
 import { MapContextMenu } from "app/components/map_context_menu";
 import { MapContext } from "app/context/map_context";
-import { env } from "app/lib/env_client";
 import type { FlatbushLike } from "app/lib/generate_flatbush_instance";
 import { EmptyIndex } from "app/lib/generate_flatbush_instance";
 import { useHandlers } from "app/lib/handlers/index";
@@ -50,7 +49,7 @@ import { LastSearchResult } from "./last_search_result";
 import { ModeHints } from "./mode_hints";
 
 maplibregl.setRTLTextPlugin(
-  "https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js"
+  "https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js",
 );
 
 export interface ContextInfo {

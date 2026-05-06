@@ -2,10 +2,7 @@ import {
   emptyFeatureCollection,
   LINE_COLORS_SELECTED,
 } from "app/lib/constants";
-import {
-  addTileJSONStyle,
-  addXYZStyle,
-} from "app/lib/layer_config_adapters";
+import { addTileJSONStyle, addXYZStyle } from "app/lib/layer_config_adapters";
 import type {
   CircleLayerSpecification,
   ExpressionSpecification,
@@ -342,7 +339,9 @@ function LABEL_PAINT(
 
 function LABEL_LAYOUT(
   previewProperty: PreviewProperty,
-  placement: NonNullable<SymbolLayerSpecification["layout"]>["symbol-placement"],
+  placement: NonNullable<
+    SymbolLayerSpecification["layout"]
+  >["symbol-placement"],
 ): SymbolLayerSpecification["layout"] {
   const paint: SymbolLayerSpecification["layout"] = {
     "text-field": ["get", previewProperty],
