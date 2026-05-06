@@ -17,7 +17,7 @@ import loadAndAugmentStyle, {
 } from "app/lib/load_and_augment_style";
 import { splitFeatureGroups } from "app/lib/pmap/split_feature_groups";
 import { shallowArrayEqual } from "app/lib/utils";
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 import type {
   Data,
   EphemeralEditingState,
@@ -35,7 +35,7 @@ import type {
 } from "types";
 import { bboxToPolygon } from "../geometry";
 
-const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
+const MAP_OPTIONS: Omit<maplibregl.MapOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
   maxZoom: 26,
   boxZoom: false,
@@ -54,31 +54,31 @@ const cursorSvg = (color: string) => {
   return div;
 };
 
-type ClickEvent = mapboxgl.MapMouseEvent;
-type MoveEvent = mapboxgl.MapboxEvent;
+type ClickEvent = maplibregl.MapMouseEvent;
+type MoveEvent = maplibregl.MapLibreEvent;
 
 export type PMapHandlers = {
   onClick: (e: ClickEvent) => void;
   onDoubleClick: (e: ClickEvent) => void;
-  onMapMouseUp: (e: mapboxgl.MapMouseEvent) => void;
-  onMapMouseMove: (e: mapboxgl.MapMouseEvent) => void;
-  onMapTouchMove: (e: mapboxgl.MapTouchEvent) => void;
-  onMapMouseDown: (e: mapboxgl.MapMouseEvent) => void;
-  onMapTouchStart: (e: mapboxgl.MapTouchEvent) => void;
-  onMoveEnd: (e: mapboxgl.MapboxEvent) => void;
-  onMapTouchEnd: (e: mapboxgl.MapTouchEvent) => void;
-  onMove: (e: mapboxgl.MapboxEvent) => void;
+  onMapMouseUp: (e: maplibregl.MapMouseEvent) => void;
+  onMapMouseMove: (e: maplibregl.MapMouseEvent) => void;
+  onMapTouchMove: (e: maplibregl.MapTouchEvent) => void;
+  onMapMouseDown: (e: maplibregl.MapMouseEvent) => void;
+  onMapTouchStart: (e: maplibregl.MapTouchEvent) => void;
+  onMoveEnd: (e: maplibregl.MapLibreEvent) => void;
+  onMapTouchEnd: (e: maplibregl.MapTouchEvent) => void;
+  onMove: (e: maplibregl.MapLibreEvent) => void;
 };
 
-const lastValues = new WeakMap<mapboxgl.GeoJSONSource, Feature[]>();
+const lastValues = new WeakMap<maplibregl.GeoJSONSource, Feature[]>();
 
 /**
- * Memoized set data for a mapboxgl.GeoJSONSource. If
+ * Memoized set data for a maplibregl.GeoJSONSource. If
  * the same source is called with the same data,
  * it won't set.
  */
 function mSetData(
-  source: mapboxgl.GeoJSONSource,
+  source: maplibregl.GeoJSONSource,
   newData: Feature[],
   _label: string,
   force?: boolean,
@@ -101,7 +101,7 @@ function mSetData(
 }
 
 export default class PMap {
-  map: mapboxgl.Map;
+  map: maplibregl.Map;
   handlers: React.MutableRefObject<PMapHandlers>;
   idMap: IDMap;
 
@@ -110,7 +110,7 @@ export default class PMap {
   lastData: Data | null;
   lastEphemeralState: EphemeralEditingState;
   lastSymbolization: ISymbolization | null;
-  presenceMarkers: Map<IPresence["userId"], mapboxgl.Marker>;
+  presenceMarkers: Map<IPresence["userId"], maplibregl.Marker>;
   lastLayer: LayerConfigMap | null;
   lastPreviewProperty: PreviewProperty;
   overlay: MapboxOverlay;
@@ -130,14 +130,14 @@ export default class PMap {
     symbolization: ISymbolization;
     previewProperty: PreviewProperty;
     idMap: IDMap;
-    controlsCorner?: Parameters<mapboxgl.Map["addControl"]>[1];
+    controlsCorner?: Parameters<maplibregl.Map["addControl"]>[1];
   }) {
     this.idMap = idMap;
     const positionOptions = {
-      bounds: DEFAULT_MAP_BOUNDS as mapboxgl.LngLatBoundsLike,
+      bounds: DEFAULT_MAP_BOUNDS as maplibregl.LngLatBoundsLike,
     };
 
-    const map = new mapboxgl.Map({
+    const map = new maplibregl.Map({
       container: element,
       ...MAP_OPTIONS,
       ...positionOptions,
@@ -151,7 +151,7 @@ export default class PMap {
     map.addControl(this.overlay as any);
 
     map.addControl(
-      new mapboxgl.GeolocateControl({
+      new maplibregl.GeolocateControl({
         showUserLocation: false,
         showAccuracyCircle: false,
         positionOptions: {
@@ -160,9 +160,9 @@ export default class PMap {
       }),
       controlsCorner,
     );
-    map.addControl(new mapboxgl.NavigationControl({}), controlsCorner);
+    map.addControl(new maplibregl.NavigationControl({}), controlsCorner);
     map.addControl(
-      new mapboxgl.AttributionControl({
+      new maplibregl.AttributionControl({
         compact: true,
       }),
     );
@@ -209,7 +209,7 @@ export default class PMap {
     this.handlers.current.onMapMouseDown(e);
   };
 
-  onMapTouchStart = (e: mapboxgl.MapTouchEvent) => {
+  onMapTouchStart = (e: maplibregl.MapTouchEvent) => {
     this.handlers.current.onMapTouchStart(e);
   };
 
@@ -221,7 +221,7 @@ export default class PMap {
     this.handlers.current.onMoveEnd(e);
   };
 
-  onMapTouchEnd = (e: mapboxgl.MapTouchEvent) => {
+  onMapTouchEnd = (e: maplibregl.MapTouchEvent) => {
     this.handlers.current.onMapTouchEnd(e);
   };
 
@@ -229,15 +229,15 @@ export default class PMap {
     this.handlers.current.onMove(e);
   };
 
-  onMapMouseMove = (e: mapboxgl.MapMouseEvent) => {
+  onMapMouseMove = (e: maplibregl.MapMouseEvent) => {
     this.handlers.current.onMapMouseMove(e);
   };
 
-  onMapTouchMove = (e: mapboxgl.MapTouchEvent) => {
+  onMapTouchMove = (e: maplibregl.MapTouchEvent) => {
     this.handlers.current.onMapTouchMove(e);
   };
 
-  onMapDoubleClick = (e: mapboxgl.MapMouseEvent) => {
+  onMapDoubleClick = (e: maplibregl.MapMouseEvent) => {
     this.handlers.current.onDoubleClick(e);
   };
 
@@ -246,7 +246,7 @@ export default class PMap {
     for (const presence of presences) {
       const marker =
         this.presenceMarkers.get(presence.userId) ??
-        new mapboxgl.Marker(cursorSvg(colorFromPresence(presence)));
+        new maplibregl.Marker(cursorSvg(colorFromPresence(presence)));
       marker
         .setLngLat([presence.cursorLongitude, presence.cursorLatitude])
         .addTo(this.map);
@@ -281,15 +281,15 @@ export default class PMap {
 
     const featuresSource = this.map.getSource(
       FEATURES_SOURCE_NAME,
-    ) as mapboxgl.GeoJSONSource;
+    ) as maplibregl.GeoJSONSource;
 
     const lassoSource = this.map.getSource(
       LASSO_SOURCE_NAME,
-    ) as mapboxgl.GeoJSONSource;
+    ) as maplibregl.GeoJSONSource;
 
     const ephemeralSource = this.map.getSource(
       EPHEMERAL_SOURCE_NAME,
-    ) as mapboxgl.GeoJSONSource;
+    ) as maplibregl.GeoJSONSource;
 
     if (!featuresSource || !ephemeralSource) {
       // Set the lastFeatureList here

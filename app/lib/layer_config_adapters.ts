@@ -1,6 +1,6 @@
-import { getMapboxLayerURL, getTileJSON } from "app/lib/utils";
+import { getTileJSON } from "app/lib/utils";
 import once from "lodash/once";
-import mapboxgl from "mapbox-gl";
+import type { LayerSpecification, StyleSpecification } from "maplibre-gl";
 import { toast } from "react-hot-toast";
 import type { ILayerConfig } from "types";
 
@@ -8,104 +8,9 @@ const warnOffline = once(() => {
   toast.error("Offline: falling back to blank background");
 });
 
-export async function addMapboxStyle(
-  _base: mapboxgl.Style,
-  layer: ILayerConfig,
-): Promise<mapboxgl.Style> {
-  const nextToken = layer.token;
-  mapboxgl.accessToken = nextToken;
-
-  const url = getMapboxLayerURL(layer);
-
-  const style: mapboxgl.Style = await fetch(url)
-    .then((res) => {
-      if (!res?.ok) {
-        throw new Error("Could not fetch layer");
-      }
-      return res.json();
-    })
-    .catch(() => {
-      warnOffline();
-      return {
-        version: 8,
-        name: "Empty",
-        sprite: "mapbox://sprites/mapbox/streets-v8",
-        glyphs: "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
-        sources: {},
-        layers: [],
-      };
-    });
-
-  const updatedStyle = updateMapboxStyle(style, {
-    labelVisibility: layer.labelVisibility,
-    rasterOpacity: layer.opacity,
-  });
-  return updatedStyle;
-}
-
-function updateMapboxStyle(
-  style: mapboxgl.Style,
-  options: {
-    labelVisibility?: boolean;
-    rasterOpacity?: number;
-  },
-): mapboxgl.Style {
-  const { labelVisibility = true, rasterOpacity } = options;
-
-  if (!style.layers) {
-    return style;
-  }
-
-  const isSatelliteStyle =
-    style.name === "Mapbox Satellite Streets" ||
-    style.name === "Mapbox Satellite";
-
-  const updatedLayers = style.layers
-    .map((layer) => {
-      // Identify label layers
-      const isLabelLayer =
-        layer.type === "symbol" && layer.layout?.["text-field"] !== undefined;
-
-      if (!labelVisibility && isLabelLayer) {
-        return null;
-      }
-
-      if (
-        isSatelliteStyle &&
-        layer.type === "raster" &&
-        rasterOpacity !== undefined
-      ) {
-        return {
-          ...layer,
-          paint: {
-            ...(layer.paint || {}),
-            "raster-opacity": rasterOpacity,
-          },
-        };
-      }
-
-      if (isSatelliteStyle && layer.type === "background" && layer.paint) {
-        return {
-          ...layer,
-          paint: {
-            ...layer.paint,
-            "background-color": "#ffffff",
-          },
-        };
-      }
-
-      return layer;
-    })
-    .filter(Boolean) as mapboxgl.AnyLayer[];
-
-  return {
-    ...style,
-    layers: updatedLayers,
-  };
-}
 function paintLayoutFromRasterLayer(
   layer: ILayerConfig,
-): Pick<mapboxgl.RasterLayer, "type" | "paint" | "layout"> {
+): Pick<LayerSpecification & { type: "raster" }, "type" | "paint" | "layout"> {
   return {
     type: "raster",
     paint: {
@@ -118,12 +23,10 @@ function paintLayoutFromRasterLayer(
 }
 
 export async function addTileJSONStyle(
-  style: mapboxgl.Style,
+  style: StyleSpecification,
   layer: ILayerConfig,
   id: number,
 ) {
-  // mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
   const sourceId = `placemarkInternalSource${id}`;
   const layerId = `placemarkInternalLayer${id}`;
 
@@ -143,7 +46,7 @@ export async function addTileJSONStyle(
       id: layerId,
       source: sourceId,
       ...paintLayoutFromRasterLayer(layer),
-    } as mapboxgl.AnyLayer;
+    } as LayerSpecification;
 
     style.layers.push(newLayer);
   } catch (_e) {
@@ -155,12 +58,10 @@ export async function addTileJSONStyle(
 }
 
 export function addXYZStyle(
-  style: mapboxgl.Style,
+  style: StyleSpecification,
   layer: ILayerConfig,
   id: number,
 ) {
-  // mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
   const sourceId = `placemarkInternalSource${id}`;
   const layerId = `placemarkInternalLayer${id}`;
 
@@ -175,7 +76,7 @@ export function addXYZStyle(
     id: layerId,
     source: sourceId,
     ...paintLayoutFromRasterLayer(layer),
-  } as mapboxgl.AnyLayer;
+  } as LayerSpecification;
 
   style.layers.push(newLayer);
 

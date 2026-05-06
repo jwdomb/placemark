@@ -293,10 +293,3 @@ export async function get<T extends z.ZodType<unknown>>(
   const parsed = type.parse(json);
   return parsed;
 }
-
-export function getMapboxLayerURL(layer: ILayerConfig) {
-  return (
-    layer.url.replace("mapbox://styles/", "https://api.mapbox.com/styles/v1/") +
-    `?optimize=true&access_token=${layer.token}`
-  );
-}

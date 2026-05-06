@@ -1,4 +1,4 @@
-import { expression } from "@mapbox/mapbox-gl-style-spec";
+import { expression } from "@maplibre/maplibre-gl-style-spec";
 import { rewindGeometry } from "@placemarkio/geojson-rewind";
 import { DownloadIcon } from "@radix-ui/react-icons";
 import type { Root } from "@tmcw/togeojson";
@@ -306,7 +306,7 @@ export function ExportSVGDialog() {
     <>
       <DialogHeader title="Export SVG" titleIcon={DownloadIcon} />
       <TextWell>
-        SVG Export is a specialized option: what you get here won’t be a
+        SVG Export is a specialized option: what you get here won't be a
         finished product, but a basic element that you can use when you import
         it into a drawing tool.
         <br />
