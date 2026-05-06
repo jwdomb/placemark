@@ -205,6 +205,14 @@ export async function transactRoute(
   wrappedFeature: IWrappedFeature,
   routeType: ROUTE_TYPE,
 ) {
+  const token = env.MAPBOX_TOKEN;
+  if (!token || token === "xxx" || token === "undefined") {
+    toast.error(
+      "Routing requires a Mapbox access token. Set VITE_PUBLIC_MAPBOX_TOKEN in your environment.",
+    );
+    return null;
+  }
+
   const geometry = wrappedFeature.feature.geometry;
   if (geometry?.type !== "GeometryCollection") return null;
 

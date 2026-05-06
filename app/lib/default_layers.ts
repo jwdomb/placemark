@@ -12,6 +12,8 @@ const LAYERS: Record<string, LayerConfigTemplate> = {
     url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
     token: "",
   },
+  // NOTE: NAIP imagery only covers the contiguous United States.
+  // International users will see blank tiles when this layer is selected.
   SATELLITE: {
     name: "Satellite (NAIP)",
     type: "XYZ",
