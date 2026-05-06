@@ -2,30 +2,33 @@ import {
   emptyFeatureCollection,
   LINE_COLORS_SELECTED,
 } from "app/lib/constants";
-import {
-  addMapboxStyle,
-  addTileJSONStyle,
-  addXYZStyle,
-} from "app/lib/layer_config_adapters";
-import type mapboxgl from "mapbox-gl";
-// TODO: this is a UI concern that should be separate.
-import type { Style } from "mapbox-gl";
+import { addTileJSONStyle, addXYZStyle } from "app/lib/layer_config_adapters";
+import type {
+  CircleLayerSpecification,
+  ExpressionSpecification,
+  FillLayerSpecification,
+  FilterSpecification,
+  LayerSpecification,
+  LineLayerSpecification,
+  StyleSpecification,
+  SymbolLayerSpecification,
+} from "maplibre-gl";
 import type { PreviewProperty } from "state/jotai";
 import type { ISymbolization, LayerConfigMap } from "types";
 
 function getEmptyStyle() {
-  const style: mapboxgl.Style = {
+  const style: StyleSpecification = {
     version: 8,
     name: "XYZ Layer",
-    sprite: "mapbox://sprites/mapbox/streets-v8",
-    glyphs: "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
+    sprite: "",
+    glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
     sources: {},
     layers: [],
   };
   return style;
 }
 
-const CIRCLE_LAYOUT: mapboxgl.CircleLayout = {};
+const CIRCLE_LAYOUT: CircleLayerSpecification["layout"] = {};
 
 export const FEATURES_SOURCE_NAME = "features";
 export const LASSO_SOURCE_NAME = "lasso";
@@ -56,7 +59,7 @@ const emptyGeoJSONSource = {
 } as const;
 
 const CONTENT_LAYER_FILTERS: {
-  [key: string]: mapboxgl.Layer["filter"];
+  [key: string]: FilterSpecification;
 } = {
   [FEATURES_LINE_LAYER_NAME]: [
     "any",
@@ -68,9 +71,9 @@ const CONTENT_LAYER_FILTERS: {
 };
 
 function addPreviewFilter(
-  filters: mapboxgl.Layer["filter"],
+  filters: FilterSpecification,
   previewProperty: PreviewProperty,
-): mapboxgl.Layer["filter"] {
+): FilterSpecification {
   if (!previewProperty) return filters;
   return ["all", filters, ["has", previewProperty]];
 }
@@ -83,17 +86,13 @@ export default async function loadAndAugmentStyle({
   layerConfigs: LayerConfigMap;
   symbolization: ISymbolization;
   previewProperty: PreviewProperty;
-}): Promise<Style> {
+}): Promise<StyleSpecification> {
   let style = getEmptyStyle();
   let id = 0;
   const layers = [...layerConfigs.values()].reverse();
   for (const layer of layers) {
     id++;
     switch (layer.type) {
-      case "MAPBOX": {
-        style = await addMapboxStyle(style, layer);
-        break;
-      }
       case "XYZ": {
         style = addXYZStyle(style, layer, id);
         break;
@@ -114,7 +113,7 @@ export function addEditingLayers({
   symbolization,
   previewProperty,
 }: {
-  style: Style;
+  style: StyleSpecification;
   symbolization: ISymbolization;
   previewProperty: PreviewProperty;
 }) {
@@ -137,7 +136,7 @@ export function makeLayers({
 }: {
   symbolization: ISymbolization;
   previewProperty: PreviewProperty;
-}): mapboxgl.AnyLayer[] {
+}): LayerSpecification[] {
   return [
     // Real polygons, from the dataset.
     {
@@ -215,7 +214,7 @@ export function makeLayers({
       ? [
           {
             id: FEATURES_POINT_LABEL_LAYER_NAME,
-            type: "symbol",
+            type: "symbol" as const,
             source: FEATURES_SOURCE_NAME,
             paint: LABEL_PAINT(symbolization, previewProperty),
             layout: LABEL_LAYOUT(previewProperty, "point"),
@@ -223,10 +222,10 @@ export function makeLayers({
               CONTENT_LAYER_FILTERS[FEATURES_POINT_LAYER_NAME],
               previewProperty,
             ),
-          } as mapboxgl.AnyLayer,
+          } as LayerSpecification,
           {
             id: FEATURES_LINE_LABEL_LAYER_NAME,
-            type: "symbol",
+            type: "symbol" as const,
             source: FEATURES_SOURCE_NAME,
             paint: LABEL_PAINT(symbolization, previewProperty),
             layout: LABEL_LAYOUT(previewProperty, "line"),
@@ -234,10 +233,10 @@ export function makeLayers({
               CONTENT_LAYER_FILTERS[FEATURES_LINE_LAYER_NAME],
               previewProperty,
             ),
-          } as mapboxgl.AnyLayer,
+          } as LayerSpecification,
           {
             id: FEATURES_FILL_LABEL_LAYER_NAME,
-            type: "symbol",
+            type: "symbol" as const,
             source: FEATURES_SOURCE_NAME,
             paint: LABEL_PAINT(symbolization, previewProperty),
             layout: LABEL_LAYOUT(previewProperty, "point"),
@@ -245,7 +244,7 @@ export function makeLayers({
               CONTENT_LAYER_FILTERS[FEATURES_FILL_LAYER_NAME],
               previewProperty,
             ),
-          } as mapboxgl.AnyLayer,
+          } as LayerSpecification,
         ]
       : []),
   ];
@@ -259,7 +258,7 @@ function asNumberExpression({
   symbolization: ISymbolization;
   defaultValue?: number;
   part: "stroke-width" | "fill-opacity" | "stroke-opacity";
-}): mapboxgl.Expression | number {
+}): ExpressionSpecification | number {
   if (symbolization.simplestyle) {
     return ["coalesce", ["get", part], defaultValue];
   }
@@ -272,7 +271,7 @@ export function asColorExpression({
 }: {
   symbolization: ISymbolization;
   part?: "fill" | "stroke";
-}): mapboxgl.Expression | string {
+}): ExpressionSpecification | string {
   const expression = asColorExpressionInner({ symbolization });
   if (symbolization.simplestyle) {
     return ["coalesce", ["get", part], expression];
@@ -284,7 +283,7 @@ function asColorExpressionInner({
   symbolization,
 }: {
   symbolization: ISymbolization;
-}): mapboxgl.Expression | string {
+}): ExpressionSpecification | string {
   const { defaultColor } = symbolization;
   switch (symbolization.type) {
     case "none": {
@@ -329,8 +328,8 @@ function asColorExpressionInner({
 function LABEL_PAINT(
   _symbolization: ISymbolization,
   _previewProperty: PreviewProperty,
-): mapboxgl.SymbolPaint {
-  const paint: mapboxgl.SymbolPaint = {
+): SymbolLayerSpecification["paint"] {
+  const paint: SymbolLayerSpecification["paint"] = {
     "text-halo-color": "#fff",
     "text-halo-width": 1,
     "text-halo-blur": 0.8,
@@ -340,9 +339,11 @@ function LABEL_PAINT(
 
 function LABEL_LAYOUT(
   previewProperty: PreviewProperty,
-  placement: NonNullable<mapboxgl.SymbolLayout>["symbol-placement"],
-): mapboxgl.SymbolLayout {
-  const paint: mapboxgl.SymbolLayout = {
+  placement: NonNullable<
+    SymbolLayerSpecification["layout"]
+  >["symbol-placement"],
+): SymbolLayerSpecification["layout"] {
+  const paint: SymbolLayerSpecification["layout"] = {
     "text-field": ["get", previewProperty],
     "text-variable-anchor": ["top", "bottom", "left", "right"],
     "text-radial-offset": 0.5,
@@ -357,7 +358,7 @@ function LABEL_LAYOUT(
 export function CIRCLE_PAINT(
   symbolization: ISymbolization,
   halo = false,
-): mapboxgl.CirclePaint {
+): CircleLayerSpecification["paint"] {
   const r = halo ? 2 : 0;
   if (halo) {
     return {
@@ -412,9 +413,9 @@ export function CIRCLE_PAINT(
  * expression.
  */
 function handleSelected(
-  expression: mapboxgl.Expression | string,
+  expression: ExpressionSpecification | string,
   exp = false,
-  selected: mapboxgl.Expression | string,
+  selected: ExpressionSpecification | string,
 ) {
   return exp
     ? expression
@@ -424,13 +425,13 @@ function handleSelected(
         "selected",
         selected,
         expression,
-      ] as mapboxgl.Expression);
+      ] as ExpressionSpecification);
 }
 
 export function FILL_PAINT(
   symbolization: ISymbolization,
   exp = false,
-): mapboxgl.FillPaint {
+): FillLayerSpecification["paint"] {
   return {
     "fill-opacity": asNumberExpression({
       symbolization,
@@ -451,7 +452,7 @@ export function FILL_PAINT(
 export function LINE_PAINT(
   symbolization: ISymbolization,
   exp = false,
-): mapboxgl.LinePaint {
+): LineLayerSpecification["paint"] {
   return {
     "line-opacity": asNumberExpression({
       symbolization,

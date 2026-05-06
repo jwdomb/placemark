@@ -6,6 +6,7 @@ import { usePersistence } from "app/lib/persistence/context";
 import { useAtom, useSetAtom } from "jotai";
 import last from "lodash/last";
 import throttle from "lodash/throttle";
+import type maplibregl from "maplibre-gl";
 import { Popover as P } from "radix-ui";
 import {
   Fragment,
@@ -122,7 +123,7 @@ function LegendCategorical({
 }
 
 function getScale(
-  map: mapboxgl.Map,
+  map: maplibregl.Map,
   options: {
     unit: ScaleUnit;
   },
@@ -201,7 +202,7 @@ function ScaleControl() {
 
   useEffect(() => {
     if (map) {
-      const onMove = throttle((e: mapboxgl.MapboxEvent) => {
+      const onMove = throttle((e: maplibregl.MapLibreEvent) => {
         startTransition(() => {
           setMeasurement(
             getScale(e.target, {

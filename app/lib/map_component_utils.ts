@@ -17,10 +17,10 @@ import { isFeatureLocked } from "./folder";
 import { getMapCoord } from "./handlers/utils";
 import { type IDMap, UIDMap } from "./id_mapper";
 
-type MouseOrTouchEvent = mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent;
+type MouseOrTouchEvent = maplibregl.MapMouseEvent | maplibregl.MapTouchEvent;
 
 export function wrappedFeaturesFromMapFeatures(
-  clickedFeatures: mapboxgl.MapboxGeoJSONFeature[],
+  clickedFeatures: maplibregl.MapGeoJSONFeature[],
   featureMap: FeatureMap,
   idMap: IDMap,
 ) {
@@ -80,7 +80,7 @@ export function newPolygonFromClickEvent(e: MouseOrTouchEvent): Polygon {
 
 export function isLassoTiny(
   ephemeralState: EphemeralEditingStateLasso,
-  map: mapboxgl.Map,
+  map: maplibregl.Map,
 ) {
   const tl = map.project(ephemeralState.box[0]);
   const br = map.project(ephemeralState.box[1]);

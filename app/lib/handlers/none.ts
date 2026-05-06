@@ -45,7 +45,7 @@ export function useNoneHandlers({
   const transact = rep.useTransact();
   const endSnapshot = useEndSnapshot();
   const startSnapshot = useStartSnapshot();
-  const lastPoint = useRef<mapboxgl.LngLat | null>(null);
+  const lastPoint = useRef<maplibregl.LngLat | null>(null);
   const spaceHeld = useSpaceHeld();
   const altHeld = useAltHeld();
 
@@ -326,7 +326,7 @@ export function useNoneHandlers({
       }
     },
     click: (e) => {
-      // Get the fuzzy feature. This is a mapboxgl feature
+      // Get the fuzzy feature. This is a maplibregl feature
       // with only an id.
       const fuzzyResult = utils.fuzzyClick(e, {
         idMap,

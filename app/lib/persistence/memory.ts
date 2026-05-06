@@ -33,6 +33,7 @@ import type {
   IWrappedFeatureInput,
   LayerConfigMap,
 } from "types";
+import { zLayerConfig } from "types";
 import {
   getFreshAt,
   momentForDeleteFeatures,
@@ -277,6 +278,11 @@ export class MemPersistence implements IPersistence {
     const moment = fMoment("Put layer configs");
 
     for (const layerConfig of layerConfigs) {
+      // Gracefully skip invalid layer configs (e.g., legacy MAPBOX type configs
+      // that no longer exist in the schema after the MapLibre migration).
+      const parsed = zLayerConfig.safeParse(layerConfig);
+      if (!parsed.success) continue;
+
       const oldVersion = layerConfigMap.get(layerConfig.id);
       if (oldVersion) {
         moment.putLayerConfigs.push(oldVersion);

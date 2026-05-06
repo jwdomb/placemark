@@ -38,8 +38,7 @@ import { useZoomTo } from "app/hooks/use_zoom_to";
 import LAYERS from "app/lib/default_layers";
 import { newFeatureId } from "app/lib/id";
 import { usePersistence } from "app/lib/persistence/context";
-import type { Moment } from "app/lib/persistence/moment";
-import { get, getMapboxLayerURL, getTileJSON } from "app/lib/utils";
+import { get, getTileJSON } from "app/lib/utils";
 import { zTileJSON } from "app/mapbox-layers/validations";
 import { generateKeyBetween } from "fractional-indexing";
 import { captureException } from "integrations/errors";
@@ -52,15 +51,10 @@ import toast from "react-hot-toast";
 import { layerConfigAtom } from "state/jotai";
 import { match } from "ts-pattern";
 import { type ILayerConfig, zLayerConfig } from "types";
-import { ZodError, z } from "zod";
+import { ZodError, type z } from "zod";
 import { DefaultLayerItem } from "./default_layer_item";
 
-type Mode =
-  | "initial"
-  | "custom"
-  | "custom-xyz"
-  | "custom-mapbox"
-  | "custom-tilejson";
+type Mode = "initial" | "custom" | "custom-xyz" | "custom-tilejson";
 
 const layerModeAtom = atom<Mode>("initial");
 
@@ -81,9 +75,7 @@ const SHARED_INTIAL_VALUES = {
  * --> AddLayer
  * ----> DefaultLayerItem
  * ----> XYZLayer
- * ----> MapboxLayer
- * ------> MapboxLayerList
- * --------> DefaultLayerItem
+ * ----> TileJSONLayer
  */
 
 /**
@@ -96,34 +88,6 @@ function getNextAt(items: ILayerConfig[]) {
   }
   return generateKeyBetween(null, items[0].at || null);
 }
-
-/**
- * If there's an existing Mapbox style layer
- * in the stack, replace it and use its `at` value.
- */
-function maybeDeleteOldMapboxLayer(items: ILayerConfig[]): {
-  deleteLayerConfigs: Moment["deleteLayerConfigs"];
-  oldAt: string | undefined;
-} {
-  let oldAt: string | undefined;
-  const oldMapboxLayer = items.find((layer) => layer.type === "MAPBOX");
-
-  const deleteLayerConfigs: string[] = [];
-
-  if (oldMapboxLayer) {
-    oldAt = oldMapboxLayer.at;
-    deleteLayerConfigs.push(oldMapboxLayer.id);
-  }
-  return {
-    oldAt,
-    deleteLayerConfigs,
-  };
-}
-
-const MapboxStyleSkeleton = z.object({
-  version: z.number(),
-  name: z.string(),
-});
 
 function BackButton({ to }: { to: Mode }) {
   const setMode = useSetAtom(layerModeAtom);
@@ -160,102 +124,6 @@ function LayerFormHeader({
         <BackButton to="custom" />
       )}
     </div>
-  );
-}
-
-function MapboxLayer({
-  layer,
-  onDone,
-}: {
-  layer?: z.infer<typeof zLayerConfig>;
-  onDone?: () => void;
-}) {
-  const setMode = useSetAtom(layerModeAtom);
-  const rep = usePersistence();
-  const transact = rep.useTransact();
-  const isEditing = !!layer;
-  const layerConfigs = useAtomValue(layerConfigAtom);
-  const items = [...layerConfigs.values()];
-
-  const initialValues =
-    layer ||
-    ({
-      ...SHARED_INTIAL_VALUES,
-      type: "MAPBOX",
-    } as const);
-
-  return (
-    <Form
-      schema={zLayerConfig}
-      initialValues={initialValues}
-      submitText={isEditing ? "Update layer" : "Add layer"}
-      fullWidthSubmit
-      onSubmit={async (values) => {
-        const url = getMapboxLayerURL(values);
-        let name = "";
-        try {
-          const style = await get(url, MapboxStyleSkeleton);
-          name = style.name || "Mapbox style";
-        } catch (_e) {
-          return {
-            [FORM_ERROR]: "Could not load style",
-          };
-        }
-        const { deleteLayerConfigs, oldAt } = maybeDeleteOldMapboxLayer(items);
-        if (deleteLayerConfigs.length) {
-          toast("Mapbox layer replaced");
-        }
-        await transact({
-          note: "Add layer",
-          deleteLayerConfigs,
-          putLayerConfigs: [
-            {
-              ...values,
-              name,
-              visibility: true,
-              labelVisibility: true,
-              tms: false,
-              opacity: 1,
-              at: oldAt || getNextAt(items),
-              id: newFeatureId(),
-            },
-          ],
-        });
-
-        setMode("initial");
-        if (onDone) {
-          onDone();
-        }
-      }}
-    >
-      <LayerFormHeader isEditing={isEditing}>Mapbox</LayerFormHeader>
-      <TextWell variant="primary" size="xs">
-        See Mapbox documentation on{" "}
-        <a
-          target="_blank"
-          rel="noreferrer"
-          className={E.styledInlineA}
-          href="https://docs.mapbox.com/help/glossary/style-url/"
-        >
-          style URLs
-        </a>{" "}
-        if you're not sure what to input here.
-      </TextWell>
-      <LabeledTextField
-        name="url"
-        label="Style URL"
-        required
-        autoComplete="off"
-        placeholder="mapbox://"
-      />
-      <LabeledTextField
-        name="token"
-        required
-        label="Access token"
-        autoComplete="off"
-        placeholder="pk.…"
-      />
-    </Form>
   );
 }
 
@@ -297,7 +165,7 @@ function TileJSONLayer({
             };
           }
           return {
-            [FORM_ERROR]: "Invalid: this TileJSON can’t be downloaded.",
+            [FORM_ERROR]: "Invalid: this TileJSON can't be downloaded.",
           };
         }
         await transact({
@@ -455,7 +323,6 @@ function AnyLayer({
     .with({ type: "TILEJSON" }, (layer) => (
       <TileJSONLayer layer={layer} {...rest} />
     ))
-    .with({ type: "MAPBOX" }, () => <MapboxLayer layer={layer} {...rest} />)
     .exhaustive();
 }
 
@@ -476,21 +343,15 @@ function AddLayer() {
           key={id}
           mapboxLayer={mapboxLayer}
           onSelect={async (layer) => {
-            const { deleteLayerConfigs, oldAt } =
-              maybeDeleteOldMapboxLayer(items);
-            if (deleteLayerConfigs.length) {
-              toast("Mapbox layer replaced");
-            }
             await transact({
               note: "Add layer",
-              deleteLayerConfigs,
               putLayerConfigs: [
                 {
                   ...layer,
                   visibility: true,
                   tms: false,
                   opacity: 1,
-                  at: oldAt || nextAt,
+                  at: nextAt,
                   id: newFeatureId(),
                   labelVisibility: true,
                 },
@@ -548,10 +409,6 @@ function AddLayer() {
                       XYZ
                       <CaretRightIcon />
                     </E.Button>
-                    <E.Button onClick={() => setMode("custom-mapbox")}>
-                      Mapbox
-                      <CaretRightIcon />
-                    </E.Button>
                     <E.Button onClick={() => setMode("custom-tilejson")}>
                       TileJSON
                       <CaretRightIcon />
@@ -562,11 +419,6 @@ function AddLayer() {
               .with("custom-xyz", () => (
                 <div className="p-3">
                   <XYZLayer onDone={() => setOpen(false)} />
-                </div>
-              ))
-              .with("custom-mapbox", () => (
-                <div className="p-3">
-                  <MapboxLayer onDone={() => setOpen(false)} />
                 </div>
               ))
               .with("custom-tilejson", () => (

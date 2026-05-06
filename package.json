@@ -109,7 +109,7 @@
     "jotai-optics": "^0.4.0",
     "jotai-xstate": "^0.3.0",
     "lodash": "^4.17.21",
-    "mapbox-gl": "^3.18.0",
+    "maplibre-gl": "^5.4.0",
     "memoize-one": "^6.0.0",
     "mproj": "^0.0.40",
     "nanoid": "^5.1.6",
@@ -144,7 +144,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.6",
     "@changesets/cli": "^2.30.0",
-    "@mapbox/mapbox-gl-style-spec": "^14.18.0",
+    "@maplibre/maplibre-gl-style-spec": "^22.0.1",
     "@types/d3-dsv": "^3.0.7",
     "@types/deep-freeze": "^0.1.5",
     "@types/lodash": "^4.17.23",

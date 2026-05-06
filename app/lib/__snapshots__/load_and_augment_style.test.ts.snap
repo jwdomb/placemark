@@ -2,7 +2,7 @@
 
 exports[`loadAndAugmentStyle 1`] = `
 {
-  "glyphs": "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
   "layers": [
     {
       "id": "placemarkInternalLayer1",
@@ -263,7 +263,7 @@ exports[`loadAndAugmentStyle 1`] = `
       "type": "raster",
     },
   },
-  "sprite": "mapbox://sprites/mapbox/streets-v8",
+  "sprite": "",
   "version": 8,
 }
 `;
@@ -271,7 +271,7 @@ exports[`loadAndAugmentStyle 1`] = `
 exports[`makeLayers > categorical 1`] = `
 [
   {
-    "name": "Mapbox GL Style: Line",
+    "name": "MapLibre GL Style: Line",
     "value": "{
   "line-opacity": 1,
   "line-width": 2,
@@ -288,7 +288,7 @@ exports[`makeLayers > categorical 1`] = `
 }",
   },
   {
-    "name": "Mapbox GL Style: Fill",
+    "name": "MapLibre GL Style: Fill",
     "value": "{
   "fill-opacity": 0.3,
   "fill-color": [
@@ -304,7 +304,7 @@ exports[`makeLayers > categorical 1`] = `
 }",
   },
   {
-    "name": "Mapbox GL Style: Circle",
+    "name": "MapLibre GL Style: Circle",
     "value": "{
   "circle-stroke-color": [
     "match",
@@ -350,7 +350,7 @@ exports[`makeLayers > categorical 1`] = `
 }",
   },
   {
-    "name": "Mapbox GL Expression",
+    "name": "MapLibre GL Expression",
     "value": "[
   "match",
   [
@@ -657,7 +657,7 @@ exports[`makeLayers > categorical 2`] = `
 exports[`makeLayers > categorical with override 1`] = `
 [
   {
-    "name": "Mapbox GL Style: Line",
+    "name": "MapLibre GL Style: Line",
     "value": "{
   "line-opacity": [
     "coalesce",
@@ -695,7 +695,7 @@ exports[`makeLayers > categorical with override 1`] = `
 }",
   },
   {
-    "name": "Mapbox GL Style: Fill",
+    "name": "MapLibre GL Style: Fill",
     "value": "{
   "fill-opacity": [
     "coalesce",
@@ -725,7 +725,7 @@ exports[`makeLayers > categorical with override 1`] = `
 }",
   },
   {
-    "name": "Mapbox GL Style: Circle",
+    "name": "MapLibre GL Style: Circle",
     "value": "{
   "circle-stroke-color": [
     "match",
@@ -778,7 +778,7 @@ exports[`makeLayers > categorical with override 1`] = `
 }",
   },
   {
-    "name": "Mapbox GL Expression",
+    "name": "MapLibre GL Expression",
     "value": "[
   "match",
   [
@@ -1395,7 +1395,7 @@ exports[`makeLayers > ramp 1`] = `
 exports[`makeLayers > ramp 2`] = `
 [
   {
-    "name": "Mapbox GL Style: Line",
+    "name": "MapLibre GL Style: Line",
     "value": "{
   "line-opacity": 1,
   "line-width": 2,
@@ -1428,7 +1428,7 @@ exports[`makeLayers > ramp 2`] = `
 }",
   },
   {
-    "name": "Mapbox GL Style: Fill",
+    "name": "MapLibre GL Style: Fill",
     "value": "{
   "fill-opacity": 0.3,
   "fill-color": [
@@ -1460,7 +1460,7 @@ exports[`makeLayers > ramp 2`] = `
 }",
   },
   {
-    "name": "Mapbox GL Style: Circle",
+    "name": "MapLibre GL Style: Circle",
     "value": "{
   "circle-stroke-color": [
     "match",
@@ -1522,7 +1522,7 @@ exports[`makeLayers > ramp 2`] = `
 }",
   },
   {
-    "name": "Mapbox GL Expression",
+    "name": "MapLibre GL Expression",
     "value": "[
   "match",
   [
